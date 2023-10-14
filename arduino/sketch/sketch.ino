@@ -141,7 +141,7 @@ void loop() {
     // set each led to HIGH if the color matches the current bucket, otherwise set LOW
     logWrite( rled, rled == ledColor[b] ? HIGH : LOW );
     logWrite( yled, yled == ledColor[b] ? HIGH : LOW );
-    logWrite( yled, gled == ledColor[b] ? HIGH : LOW );
+    logWrite( gled, gled == ledColor[b] ? HIGH : LOW );
   }
 
   // For a high voltage error, all relays and LEDs will have been cleared, then we raise pin 13 for some reason
