@@ -1,23 +1,26 @@
 // Hardware constants
-// relay OUTPUT pins
-const int relay2 = 2;        
-const int relay3 = 3;
-const int relay4 = 4;
-const int relay5 = 5;
-const int relay6 = 6;
-const int relay7 = 7;
-const int relay8 = 8;
-const int relay9 = 9;
-const int relay10 = 10;
-const int relay11 = 11;
-const int relay12 = 12;
-const int relay13 = 13;
-// LED OUTPUT pins
+// digital pins
+const int D0 = 0;
+const int D1 = 1;
+const int D2 = 2;
+const int D3 = 3;
+const int D4 = 4;
+const int D5 = 5;
+const int D6 = 6;
+const int D7 = 7;
+const int D8 = 8;
+const int D9 = 9;
+const int D10 = 10;
+const int D11 = 11;
+const int D12 = 12;
+const int D13 = 13;
+// analog pins
+const int sensor = A0;      // input from tank sensor
+const int unused1 = A1;
+const int unused2 = A2;
 const int gled = A3;        // Green LED
 const int yled = A4;        // Yellow LED
 const int rled = A5;        // Red LED
-// INPUT pin from tank sensor
-const int sensor = A0;
 
 // Algorithm constants
 // Period over which to average the tank level for each update, in milliseconds
@@ -35,13 +38,15 @@ const float vLimit[numBuckets+1] = { 0.1, 0.5, 1.0, 1.2, 1.75, 2.2, 2.4, 3.4, 4.
 const int ledColor[numBuckets] = { rled, yled, yled, gled, gled, gled, gled, gled, gled, gled };
 // The pin to be energized when the voltage falls within the limits for each bucket. This pin will
 // energize the appropriate relay to set the desired resistance.
-const int pin[numBuckets] = { relay2, relay3, relay4, relay5, relay6, relay7, relay8, relay9, relay10, relay11 };
+const int pin[numBuckets] = { D2, D3, D4, D5, D6, D7, D8, D9, D10, D11 };
 
 // Error constants
 // Voltage below lower limit.
 const int ERR_LOW_VOLTAGE = -1;
 // Voltage above upper limit.
 const int ERR_HIGH_VOLTAGE = -2;
+// Pin to raise on high voltage error
+const int ERR_HIGH_VOLT_PIN = D13;
 
 // ADC to Voltage conversion constants
 // See https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/
@@ -129,7 +134,7 @@ void loop() {
 
   // For a high voltage error, all relays and LEDs will have been cleared, then we raise pin 13 for some reason
   if (vBucket == ERR_HIGH_VOLTAGE ) {
-    digitalWrite (relay13, HIGH);      // sensor voltage too high
+    digitalWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
   }
 }
 
@@ -139,22 +144,15 @@ void setup() {
   Serial.begin(9600);           // initialize serial interface
 
   // initialize pins
-  pinMode(relay2, OUTPUT);      // Relays
-  pinMode(relay3, OUTPUT);
-  pinMode(relay4, OUTPUT);
-  pinMode(relay5, OUTPUT);
-  pinMode(relay6, OUTPUT);
-  pinMode(relay7, OUTPUT);
-  pinMode(relay8, OUTPUT);
-  pinMode(relay9, OUTPUT);
-  pinMode(relay10, OUTPUT);
-  pinMode(relay11, OUTPUT);
-  pinMode(relay12, OUTPUT);      
-  pinMode(relay13, OUTPUT);
-  
-  pinMode(A3, OUTPUT);           // LEDs
-  pinMode(A4, OUTPUT);
-  pinMode(A5, OUTPUT);
-
-  pinMode(A0, INPUT);            // Tank sensor input
+  // all relay output pins
+  for( int i=0; i<numBuckets; i++) {
+    pinMode( pin[i], OUTPUT);
+  }
+  pinMode(sensor, INPUT);       // Tank sensor input
+  // LEDs
+  pinMode(rled, OUTPUT);        
+  pinMode(yled, OUTPUT);        
+  pinMode(gled, OUTPUT);
+  // high voltage error pin
+  pinMode(ERR_HIGH_VOLT_PIN, OUTPUT);
 }
