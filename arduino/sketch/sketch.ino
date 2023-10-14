@@ -148,13 +148,17 @@ void loop() {
     // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
     logWrite( relay[b], inBucket ? HIGH : LOW );
     // set each led to HIGH if the color matches the current bucket, otherwise set LOW
-    logWrite( rled, rled == ledColor[b] ? HIGH : LOW );
-    logWrite( yled, yled == ledColor[b] ? HIGH : LOW );
-    logWrite( gled, gled == ledColor[b] ? HIGH : LOW );
+    int currentColor = ledColor[b];
+    logWrite( rled, (inBucket && rled == currentColor) ? HIGH : LOW );
+    logWrite( yled, (inBucket && yled == currentColor) ? HIGH : LOW );
+    logWrite( gled, (inBucket && gled == currentColor) ? HIGH : LOW );
   }
 
   // For a high voltage error, all relays and LEDs will have been cleared, then we raise pin 13 for some reason
   if (vBucket == ERR_HIGH_VOLTAGE ) {
+    #ifdef DEBUG
+      Serial.println("ERR_HIGH_VOLTAGE detected.");
+    #endif
     logWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
   }
 }
