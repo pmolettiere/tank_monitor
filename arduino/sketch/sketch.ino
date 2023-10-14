@@ -1,6 +1,5 @@
-#define DEBUG
-
-#define TEST
+//#define DEBUG
+//#define TEST
 
 // Hardware constants
 // digital pins
@@ -181,8 +180,8 @@ void loop() {
 
 // Setup() initializes all the pins and enables serial i/o for debugging.
 void setup() {
-  Serial.begin(9600);           // initialize serial interface
   #ifdef DEBUG
+    Serial.begin(9600);           // initialize serial interface
     Serial.println ("Entering setup. Serial initialized.");
   #endif
 
