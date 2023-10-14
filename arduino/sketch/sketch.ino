@@ -38,7 +38,7 @@ const float vLimit[numBuckets+1] = { 0.1, 0.5, 1.0, 1.2, 1.75, 2.2, 2.4, 3.4, 4.
 const int ledColor[numBuckets] = { rled, yled, yled, gled, gled, gled, gled, gled, gled, gled };
 // The pin to be energized when the voltage falls within the limits for each bucket. This pin will
 // energize the appropriate relay to set the desired resistance.
-const int pin[numBuckets] = { D2, D3, D4, D5, D6, D7, D8, D9, D10, D11 };
+const int relay[numBuckets] = { D2, D3, D4, D5, D6, D7, D8, D9, D10, D11 };
 
 // Error constants
 // Voltage below lower limit.
@@ -110,10 +110,9 @@ void alarm() {                 // flash red led if volume falls below 7%
   delay (1000);
 }
 
-// This is the arduino entry point. It is called repeatedly from the OS. When a sensor reading 
-// is obtained below the threshhold, alarm() will be called, and then all relays will be reset.
-// The next call will check the sensor reading again. If in range, then operation proceeds 
-// normally.
+// This is the arduino entry point. It is called repeatedly from the OS. Each invocation will read
+// the average voltage over the averagePeriodMs time, determine which bucket the voltage falls into,
+// and check for and handle ERR_LOW_VOLTAGE and ERR_HIGH_VOLTAGE. 
 void loop() { 
   Serial.println ("loop()");
   float v = readAvgVoltage(numReadings, delayMs);
@@ -128,7 +127,7 @@ void loop() {
   for(int b=0; b<numBuckets; b++) {
     bool inBucket = v==vBucket;
     // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
-    digitalWrite( pin[b], inBucket ? HIGH : LOW );
+    digitalWrite( relay[b], inBucket ? HIGH : LOW );
     // set each led to HIGH if the color matches the current bucket, otherwise set LOW
     digitalWrite( rled, rled == ledColor[b] ? HIGH : LOW );
     digitalWrite( yled, yled == ledColor[b] ? HIGH : LOW );
@@ -149,7 +148,7 @@ void setup() {
   // initialize pins
   // all relay output pins
   for( int i=0; i<numBuckets; i++) {
-    pinMode( pin[i], OUTPUT);
+    pinMode( relay[i], OUTPUT);
   }
   pinMode(sensor, INPUT);       // Tank sensor input
   // LEDs
