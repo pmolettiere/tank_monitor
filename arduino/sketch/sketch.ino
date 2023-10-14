@@ -51,7 +51,10 @@ const float BOARD_VOLTAGE = 5.0;
 // The factor used to convert Arduino analogRead() inputs directly to voltage.
 const float ADC_TO_VOLTAGE_FACTOR = BOARD_VOLTAGE / 1024;
 
-// Returns the bucket index for a given voltage by walking the list of vLimits.
+// Returns the bucket index for a given voltage v by walking the list of vLimits. If v
+// is not within the limits defined by vLimit, either below vLimit[0] or above vLimit[numBuckets+1],
+// then either ERR_LOW_VOLTAGE or ERR_HIGH_VOLTAGE are returned respectively. All valid bucket indexes
+// are non-negative, and all errors returned are negative. 
 int getBucketForVoltage(float v) {
   if ( v < vLimit[0] ) return ERR_LOW_VOLTAGE;
 
@@ -60,11 +63,12 @@ int getBucketForVoltage(float v) {
     if (v > vLimit[i] && v <= vLimit[i+1]) {
       return i;
     }
+  }
 
   return ERR_HIGH_VOLTAGE;
 }
 
-// Reads the voltage from the sensor pin
+// Reads the voltage from the sensor pin 
 float readAvgVoltage() { 
   // This 100ms delay allows the ADC to stabilize between readings.
   // In this loop, it will be called 10 times, creating an average
@@ -111,7 +115,7 @@ void loop() {
 
   // walk the buckets, set each relay state, and set each LED state
   for(int b=0; b<numBuckets; b++) {
-    bool inBucket = v==vBucket
+    bool inBucket = v==vBucket;
     // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
     digitalWrite( pin[b], inBucket ? HIGH : LOW );
     // set each led to HIGH if the color matches the current bucket, otherwise set LOW
