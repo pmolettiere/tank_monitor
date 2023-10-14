@@ -1,3 +1,5 @@
+#define DEBUG
+
 // Hardware constants
 // digital pins
 const int D0 = 0;
@@ -100,13 +102,21 @@ float readAvgVoltage(int numReadings, int delayMs) {
   return avgVoltage;
 }
 
+// Debugging method to log all digital writes.
+void logWrite(int pin, int value) {
+  #ifdef DEBUG
+      Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", value "); Serial.println( ")");
+  #endif
+  digitalWrite(pin, value);
+}
+
 // Manipulate the UI appropriately to indicate an error has occurred. Currently only turns the red LED on
 // then off once. 
 void alarm() {                 // flash red led if volume falls below 7%
   Serial.println( "Alarm triggered!" );
-  digitalWrite(rled, HIGH);
+  logWrite(rled, HIGH);
   delay (1000);
-  digitalWrite(rled, LOW);
+  logWrite(rled, LOW);
   delay (1000);
 }
 
@@ -127,16 +137,16 @@ void loop() {
   for(int b=0; b<numBuckets; b++) {
     bool inBucket = v==vBucket;
     // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
-    digitalWrite( relay[b], inBucket ? HIGH : LOW );
+    logWrite( relay[b], inBucket ? HIGH : LOW );
     // set each led to HIGH if the color matches the current bucket, otherwise set LOW
-    digitalWrite( rled, rled == ledColor[b] ? HIGH : LOW );
-    digitalWrite( yled, yled == ledColor[b] ? HIGH : LOW );
-    digitalWrite( yled, gled == ledColor[b] ? HIGH : LOW );
+    logWrite( rled, rled == ledColor[b] ? HIGH : LOW );
+    logWrite( yled, yled == ledColor[b] ? HIGH : LOW );
+    logWrite( yled, gled == ledColor[b] ? HIGH : LOW );
   }
 
   // For a high voltage error, all relays and LEDs will have been cleared, then we raise pin 13 for some reason
   if (vBucket == ERR_HIGH_VOLTAGE ) {
-    digitalWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
+    logWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
   }
 }
 
