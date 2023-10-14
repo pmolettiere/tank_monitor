@@ -68,14 +68,11 @@ int getBucketForVoltage(float v) {
   return ERR_HIGH_VOLTAGE;
 }
 
-// Reads the voltage from the sensor pin 
-float readAvgVoltage() { 
-  // This 100ms delay allows the ADC to stabilize between readings.
-  // In this loop, it will be called 10 times, creating an average
-  // over a full second (100ms * 10 iterations = 1000ms)
-  const int numReadings = 10;  // Number of inputs to average
-  const int delayMs = 100;     // Number of ms to delay to allow ADC to stabilize between readings.
-
+// Reads the voltage from the sensor pin numReadings times, with a delayMs delay between each reading. The 
+// intention behind this delay is to allow the ADC to stabilize between readings, and the multiple readings 
+// are averaged to present a more stabilized reading in the face of tank level fluctuations to due motion
+// within the tank.
+float readAvgVoltage(int numReadings, int delayMs) { 
   int total = 0;               // Sum of all readings
   float avgVoltage = 0;           // Averaged value
 
@@ -105,7 +102,9 @@ void alarm() {                 // flash red led if volume falls below 7%
 // normally.
 void loop() { 
   Serial.println ("loop()");
-  float v = readAvgVoltage();
+  const int numReadings = 10;  // Number of inputs to average
+  const int delayMs = 100;     // Number of ms to delay to allow ADC to stabilize between readings.
+  float v = readAvgVoltage(numReadings, delayMs);
   int vBucket = getBucketForVoltage(v);
 
   // For a low voltage error, call alarm to indicate the error, the continue to clear all relays and leds
