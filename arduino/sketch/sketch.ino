@@ -103,7 +103,7 @@ int getBucketForVoltage(float v) {
 // within the tank.
 float readAvgVoltage(int numReadings, int delayMs) { 
   int total = 0;               // Sum of all readings
-  float avgVoltage = 0;           // Averaged value
+  float avgVoltage = 0;        // Averaged value
 
   // totals all ADC outputs in the range of 0-1023
   for (int i = 0; i < numReadings; i++) {
