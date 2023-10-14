@@ -97,15 +97,17 @@ float readAvgVoltage(int numReadings, int delayMs) {
   // converts the total of all digital ADC outputs into a total mV value, converting from int to float,
   // and divides by the number of readings to obtain an average mV value.
   avgVoltage = (total * ADC_TO_VOLTAGE_FACTOR) / numReadings;
-  Serial.print("getSensorAverage() returning ");
-  Serial.println( avgVoltage);
+  #ifdef DEBUG
+    Serial.print("readAvgVoltage() returning ");
+    Serial.println( avgVoltage);
+  #endif
   return avgVoltage;
 }
 
 // Debugging method to log all digital writes.
 void logWrite(int pin, int value) {
   #ifdef DEBUG
-      Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", value "); Serial.println( ")");
+      Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", "); Serial.print(value); Serial.println( ")");
   #endif
   digitalWrite(pin, value);
 }
@@ -113,18 +115,25 @@ void logWrite(int pin, int value) {
 // Manipulate the UI appropriately to indicate an error has occurred. Currently only turns the red LED on
 // then off once. 
 void alarm() {                 // flash red led if volume falls below 7%
-  Serial.println( "Alarm triggered!" );
+  #ifdef DEBUG
+    Serial.println( "Alarm triggered!" );
+  #endif
   logWrite(rled, HIGH);
   delay (1000);
   logWrite(rled, LOW);
   delay (1000);
+  #ifdef DEBUG
+    Serial.println( "Alarm exiting." );
+  #endif
 }
 
 // This is the arduino entry point. It is called repeatedly from the OS. Each invocation will read
 // the average voltage over the averagePeriodMs time, determine which bucket the voltage falls into,
 // and check for and handle ERR_LOW_VOLTAGE and ERR_HIGH_VOLTAGE. 
 void loop() { 
-  Serial.println ("loop()");
+  #ifdef DEBUG
+    Serial.println ("loop()");
+  #endif
   float v = readAvgVoltage(numReadings, delayMs);
   int vBucket = getBucketForVoltage(v);
 
@@ -152,8 +161,10 @@ void loop() {
 
 // Setup() initializes all the pins and enables serial i/o for debugging.
 void setup() {
-  Serial.println ("SETUP");
   Serial.begin(9600);           // initialize serial interface
+  #ifdef DEBUG
+    Serial.println ("Entering setup. Serial initialized.");
+  #endif
 
   // initialize pins
   // all relay output pins
@@ -167,4 +178,7 @@ void setup() {
   pinMode(gled, OUTPUT);
   // high voltage error pin
   pinMode(ERR_HIGH_VOLT_PIN, OUTPUT);
+  #ifdef DEBUG
+    Serial.println ("Exiting setup.");
+  #endif
 }
