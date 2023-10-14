@@ -87,10 +87,13 @@ float readAvgVoltage(int numReadings, int delayMs) {
   int total = 0;               // Sum of all readings
   float avgVoltage = 0;           // Averaged value
 
+  // totals all ADC outputs in the range of 0-1023
   for (int i = 0; i < numReadings; i++) {
     total += analogRead(sensor);    
     delay(delayMs);                    
   }
+  // converts the total of all digital ADC outputs into a total mV value, converting from int to float,
+  // and divides by the number of readings to obtain an average mV value.
   avgVoltage = (total * ADC_TO_VOLTAGE_FACTOR) / numReadings;
   Serial.print("getSensorAverage() returning ");
   Serial.println( avgVoltage);
