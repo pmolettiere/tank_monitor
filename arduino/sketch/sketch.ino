@@ -1,5 +1,7 @@
 #define DEBUG
 
+#define TEST
+
 // Hardware constants
 // digital pins
 const int D0 = 0;
@@ -69,25 +71,28 @@ const float ADC_TO_VOLTAGE_FACTOR = BOARD_VOLTAGE / 1024;
 // then either ERR_LOW_VOLTAGE or ERR_HIGH_VOLTAGE are returned respectively. All valid bucket indexes
 // are non-negative, and all errors returned are negative. 
 int getBucketForVoltage(float v) {
-  if ( v < vLimit[0] ) {
+  #ifdef TEST
+    v = round( v * 100.0 ) / 100.0; // deals with float weirdness during tests
+  #endif
+  if ( v <= vLimit[0] ) {
     #ifdef DEBUG
-      Serial.println("getBucketForVoltage returning ERR_LOW_VOLTAGE");
+      Serial.print("getBucketForVoltage returning ERR_LOW_VOLTAGE for "); Serial.println(v);
     #endif
     return ERR_LOW_VOLTAGE;
   }
 
   // Loop over all the vLimits
-  for (int i=1; i<=numBuckets; i++) {
+  for (int i=0; i<=numBuckets; i++) {
     if (v > vLimit[i] && v <= vLimit[i+1]) {
         #ifdef DEBUG
-          Serial.print("getBucketForVoltage returning bucket "); Serial.println(i);
+          Serial.print("getBucketForVoltage returning bucket "); Serial.print(i); Serial.print(" for voltage "); Serial.println(v);
         #endif
       return i;
     }
   }
 
   #ifdef DEBUG
-    Serial.println("getBucketForVoltage returning ERR_LOW_VOLTAGE");
+    Serial.print("getBucketForVoltage returning ERR_HIGH_VOLTAGE for "); Serial.println(v);
   #endif
   return ERR_HIGH_VOLTAGE;
 }
@@ -181,6 +186,11 @@ void setup() {
     Serial.println ("Entering setup. Serial initialized.");
   #endif
 
+  #ifdef TEST
+    Serial.println( "Executing tests...");
+    testGetBucketForVoltage();
+  #endif
+
   // initialize pins
   // all relay output pins
   for( int i=0; i<numBuckets; i++) {
@@ -197,3 +207,28 @@ void setup() {
     Serial.println ("Exiting setup.");
   #endif
 }
+
+#ifdef TEST
+// All test methods below.
+void testGetBucketForVoltage() {
+  #ifdef DEBUG
+    Serial.println("testGetBucketForVoltage()");
+  #endif
+
+//const float vLimit[numBuckets+1] = { 0.1, 0.5, 1.0, 1.2, 1.75, 2.2, 2.4, 3.4, 4.0, 4.6, 6.0 }; 
+
+  int testCaseLen = 11;
+  float testCase[] = {0.0, 0.1, 0.3, 0.5, 0.6, 1.0, 1.1, 1.2, 3.0, 6.0, 7.0 };
+  int expected[] =   { -1,  -1,   0,   0,   1,   1,   2,   2,   6,  9,  -2 };
+
+  bool pass = true;
+  for(int i=0; i<testCaseLen; i++) {
+    int actual = getBucketForVoltage(testCase[i]);
+    if(expected[i] != actual) {
+      Serial.print( "   Case "); Serial.print(i); Serial.print(" expected "); Serial.print(expected[i]); Serial.print(" != "); Serial.println(actual);
+      pass = false;
+    }
+  }
+  Serial.print( "testGetBucketForVoltage: "); Serial.println(pass ? "PASS" : "FAIL");
+}
+#endif
