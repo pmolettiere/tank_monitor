@@ -89,8 +89,8 @@ float readAvgVoltage(int numReadings, int delayMs) {
 
   // totals all ADC outputs in the range of 0-1023
   for (int i = 0; i < numReadings; i++) {
+    delay(delayMs);                    // delay before reading the sensor, so all readings have time to settle
     total += analogRead(sensor);    
-    delay(delayMs);                    
   }
   // converts the total of all digital ADC outputs into a total mV value, converting from int to float,
   // and divides by the number of readings to obtain an average mV value.
