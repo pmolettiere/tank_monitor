@@ -81,7 +81,7 @@ int getBucketForVoltage(float v) {
 
 // Reads the voltage from the sensor pin numReadings times, with a delayMs delay between each reading. The 
 // intention behind this delay is to allow the ADC to stabilize between readings, and the multiple readings 
-// are averaged to present a more stabilized reading in the face of tank level fluctuations to due motion
+// are averaged to present a more stabilized reading in the face of tank level fluctuations due to motion
 // within the tank.
 float readAvgVoltage(int numReadings, int delayMs) { 
   int total = 0;               // Sum of all readings
