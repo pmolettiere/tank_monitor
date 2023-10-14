@@ -69,15 +69,26 @@ const float ADC_TO_VOLTAGE_FACTOR = BOARD_VOLTAGE / 1024;
 // then either ERR_LOW_VOLTAGE or ERR_HIGH_VOLTAGE are returned respectively. All valid bucket indexes
 // are non-negative, and all errors returned are negative. 
 int getBucketForVoltage(float v) {
-  if ( v < vLimit[0] ) return ERR_LOW_VOLTAGE;
+  if ( v < vLimit[0] ) {
+    #ifdef DEBUG
+      Serial.println("getBucketForVoltage returning ERR_LOW_VOLTAGE");
+    #endif
+    return ERR_LOW_VOLTAGE;
+  }
 
   // Loop over all the vLimits
   for (int i=1; i<=numBuckets; i++) {
     if (v > vLimit[i] && v <= vLimit[i+1]) {
+        #ifdef DEBUG
+          Serial.print("getBucketForVoltage returning bucket "); Serial.println(i);
+        #endif
       return i;
     }
   }
 
+  #ifdef DEBUG
+    Serial.println("getBucketForVoltage returning ERR_LOW_VOLTAGE");
+  #endif
   return ERR_HIGH_VOLTAGE;
 }
 
@@ -107,7 +118,7 @@ float readAvgVoltage(int numReadings, int delayMs) {
 // Debugging method to log all digital writes.
 void logWrite(int pin, int value) {
   #ifdef DEBUG
-      Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", "); Serial.print(value); Serial.println( ")");
+      // Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", "); Serial.print(value); Serial.println( ")");
   #endif
   digitalWrite(pin, value);
 }
