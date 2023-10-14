@@ -23,7 +23,7 @@ const int yled = A4;        // Yellow LED
 const int rled = A5;        // Red LED
 
 // Algorithm constants
-// Period over which to average the tank level for each update, in milliseconds
+// Total period over which to average the tank level for each update, in milliseconds
 const int averagePeriodMs = 1000;
 // The number or readings to take during the averaging period
 const int numReadings = 10;  
