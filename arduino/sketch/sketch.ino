@@ -19,7 +19,13 @@ const int rled = A5;        // Red LED
 // INPUT pin from tank sensor
 const int sensor = A0;
 
-// Algorithm data structures
+// Algorithm constants
+// Period over which to average the tank level for each update, in milliseconds
+const int averagePeriodMs = 1000;
+// The number or readings to take during the averaging period
+const int numReadings = 10;  
+// Number of ms to delay to allow ADC to stabilize before taking each reading.
+const int delayMs = averagePeriodMs / numReadings;     
 // Number of voltage buckets and outputs to track
 const int numBuckets = 10;  
 // The voltage limits for each bucket. vLimit[bucketNumber] is the lower limit for each bucket, and 
@@ -47,7 +53,7 @@ const int ERR_HIGH_VOLTAGE = -2;
 //    units or, 0.0049 volts (4.9 mV) per unit.
 //
 // The Arduino board voltage
-const float BOARD_VOLTAGE = 5.0;
+const float BOARD_VOLTAGE = 5.0;  // 5.0 is the voltage for the Arduino UNO.
 // The factor used to convert Arduino analogRead() inputs directly to voltage.
 const float ADC_TO_VOLTAGE_FACTOR = BOARD_VOLTAGE / 1024;
 
@@ -102,8 +108,6 @@ void alarm() {                 // flash red led if volume falls below 7%
 // normally.
 void loop() { 
   Serial.println ("loop()");
-  const int numReadings = 10;  // Number of inputs to average
-  const int delayMs = 100;     // Number of ms to delay to allow ADC to stabilize between readings.
   float v = readAvgVoltage(numReadings, delayMs);
   int vBucket = getBucketForVoltage(v);
 
