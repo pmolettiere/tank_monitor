@@ -152,12 +152,8 @@ void loop() {
   float v = readAvgVoltage(numReadings, delayMs);
   int vBucket = getBucketForVoltage(v);
 
-  // For a low voltage error, call alarm to indicate the error, the continue to clear all relays and leds
-  if (vBucket == ERR_LOW_VOLTAGE) { 
-    alarm();
-  }
-
-  // walk the buckets, set each relay state, and set each LED state
+  // walk the buckets, set each relay state, and set each LED state. If an error has been returned
+  // then all relays and leds will be brought low.
   for(int b=0; b<numBuckets; b++) {
     bool inBucket = v==vBucket;
     // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
@@ -169,18 +165,31 @@ void loop() {
     logWrite( gled, (inBucket && gled == currentColor) ? HIGH : LOW );
   }
 
-  // For a high voltage error, all relays and LEDs will have been cleared, then we raise pin 13 for some reason
-  if (vBucket == ERR_HIGH_VOLTAGE ) {
-    #ifdef DEBUG
-      Serial.println("ERR_HIGH_VOLTAGE detected.");
-    #endif
-    logWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
+  if( vBucket < 0 ) { // an error must be handled.
+    switch( vBucket ) {
+      case ERR_LOW_VOLTAGE : {
+        alarm();
+        break;
+      }
+      case ERR_HIGH_VOLTAGE : {
+        #ifdef DEBUG
+          Serial.println("ERR_HIGH_VOLTAGE detected.");
+        #endif
+        logWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
+        break;
+      }
+      default : {
+        #ifdef DEBUG
+          Serial.print("Unknown error detected: "); Serial.println(vBucket);
+        #endif
+      }
+    }
   }
 }
 
 // Setup() initializes all the pins and enables serial i/o for debugging.
 void setup() {
-  #ifdef DEBUG
+  #if defined DEBUG || defined TEST
     Serial.begin(9600);           // initialize serial interface
     Serial.println ("Entering setup. Serial initialized.");
   #endif
