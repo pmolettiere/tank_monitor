@@ -113,8 +113,7 @@ float readAvgVoltage(int numReadings, int delayMs) {
   // and divides by the number of readings to obtain an average mV value.
   avgVoltage = (total * ADC_TO_VOLTAGE_FACTOR) / numReadings;
   #ifdef DEBUG
-    Serial.print("readAvgVoltage() returning ");
-    Serial.println( avgVoltage);
+    Serial.print("readAvgVoltage() returning "); Serial.println( avgVoltage);
   #endif
   return avgVoltage;
 }
@@ -165,7 +164,8 @@ void loop() {
     logWrite( gled, (inBucket && gled == currentColor) ? HIGH : LOW );
   }
 
-  if( vBucket < 0 ) { // an error must be handled.
+  // if an error is detected, all relays and leds should have already been brought low.
+  if( vBucket < 0 ) { 
     switch( vBucket ) {
       case ERR_LOW_VOLTAGE : {
         alarm();
