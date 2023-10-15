@@ -66,7 +66,7 @@ const float BOARD_VOLTAGE = 5.0;  // 5.0 is the voltage for the Arduino UNO.
 const float ADC_TO_VOLTAGE_FACTOR = BOARD_VOLTAGE / 1024;
 
 // Returns the bucket index for a given voltage v by walking the list of vLimits. If v
-// is not within the limits defined by vLimit, either below vLimit[0] or above vLimit[numBuckets+1],
+// is not within the limits defined by vLimit, either below or equal to vLimit[0] or above vLimit[numBuckets+1],
 // then either ERR_LOW_VOLTAGE or ERR_HIGH_VOLTAGE are returned respectively. All valid bucket indexes
 // are non-negative, and all errors returned are negative. 
 int getBucketForVoltage(float v) {
