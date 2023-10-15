@@ -1,5 +1,6 @@
-//#define DEBUG
-//#define TEST
+//#define DEBUG.         // Enables serial debug mussaging
+//#define LOG_WRITE.     // Enables verbose reporting of all digitalWrites
+//#define TEST           // Executes unit test code at the end of setup
 
 // Hardware constants
 // digital pins
@@ -120,8 +121,8 @@ float readAvgVoltage(int numReadings, int delayMs) {
 
 // Debugging method to log all digital writes.
 void logWrite(int pin, int value) {
-  #ifdef DEBUG
-      // Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", "); Serial.print(value); Serial.println( ")");
+  #ifdef DEBUG && LOG_WRITE
+      Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", "); Serial.print(value); Serial.println(")");
   #endif
   digitalWrite(pin, value);
 }
