@@ -217,8 +217,10 @@ void setup() {
   #endif
 }
 
-#ifdef TEST
-// All test methods below.
+#ifdef TEST // All test methods below.
+
+// Checks to be sure that the correct bucket index is returned given the expected range of 
+// voltage values.
 void testGetBucketForVoltage() {
   #ifdef DEBUG
     Serial.println("testGetBucketForVoltage()");
@@ -226,9 +228,9 @@ void testGetBucketForVoltage() {
 
 //const float vLimit[numBuckets+1] = { 0.1, 0.5, 1.0, 1.2, 1.75, 2.2, 2.4, 3.4, 4.0, 4.6, 6.0 }; 
 
-  int testCaseLen = 11;
-  float testCase[] = {0.0, 0.1, 0.3, 0.5, 0.6, 1.0, 1.1, 1.2, 3.0, 6.0, 7.0 };
-  int expected[] =   { -1,  -1,   0,   0,   1,   1,   2,   2,   6,  9,  -2 };
+  int testCaseLen = 11; // length of the testCase array
+  float testCase[] = {0.0, 0.1, 0.3, 0.5, 0.6, 1.0, 1.1, 1.2, 3.0, 6.0, 7.0 };  // the test inputs
+  int expected[] =   { -1,  -1,   0,   0,   1,   1,   2,   2,   6,  9,  -2 };   // and expected output values for each input
 
   bool pass = true;
   for(int i=0; i<testCaseLen; i++) {
