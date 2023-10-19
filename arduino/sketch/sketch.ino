@@ -44,6 +44,11 @@ const int ledColor[numBuckets] = { rled, yled, yled, gled, gled, gled, gled, gle
 // energize the appropriate relay to set the desired resistance.
 const int relay[numBuckets] = { D2, D3, D4, D5, D6, D7, D8, D9, D10, D11 };
 
+// algorithm variables
+// The last bucket to be set. Allows us to clear the last bucket when the bucket changes, and to only 
+// change led and relay states when the bucket changes.
+int lastBucket = 0;
+
 // Error constants
 // Voltage below lower limit.
 const int ERR_LOW_VOLTAGE = -1;
@@ -142,6 +147,16 @@ void alarm() {                 // flash red led if volume falls below 7%
   #endif
 }
 
+void setBucket(int b, bool inBucket) {
+    // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
+  logWrite( relay[b], inBucket ? HIGH : LOW );
+  // set each led to HIGH if the color matches the current bucket, otherwise set LOW
+  int currentColor = ledColor[b];
+  logWrite( rled, (inBucket && rled == currentColor) ? HIGH : LOW );
+  logWrite( yled, (inBucket && yled == currentColor) ? HIGH : LOW );
+  logWrite( gled, (inBucket && gled == currentColor) ? HIGH : LOW );
+}
+
 // This is the arduino entry point. It is called repeatedly from the OS. Each invocation will read
 // the average voltage over the averagePeriodMs time, determine which bucket the voltage falls into,
 // and check for and handle ERR_LOW_VOLTAGE and ERR_HIGH_VOLTAGE. 
@@ -152,38 +167,38 @@ void loop() {
   float v = readAvgVoltage(numReadings, delayMs);
   int vBucket = getBucketForVoltage(v);
 
-  // walk the buckets, set each relay state, and set each LED state. If an error has been returned
-  // then all relays and leds will be brought low.
-  for(int b=0; b<numBuckets; b++) {
-    bool inBucket = b==vBucket;
-    // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
-    logWrite( relay[b], inBucket ? HIGH : LOW );
-    // set each led to HIGH if the color matches the current bucket, otherwise set LOW
-    int currentColor = ledColor[b];
-    logWrite( rled, (inBucket && rled == currentColor) ? HIGH : LOW );
-    logWrite( yled, (inBucket && yled == currentColor) ? HIGH : LOW );
-    logWrite( gled, (inBucket && gled == currentColor) ? HIGH : LOW );
+  if( vBucket == lastBucket ) {
+    return; // do nothing if the bucket hasn't changed.
   }
 
-  // if an error is detected, all relays and leds should have already been brought low.
-  if( vBucket < 0 ) { 
-    switch( vBucket ) {
-      case ERR_LOW_VOLTAGE : {
-        alarm();
-        break;
-      }
-      case ERR_HIGH_VOLTAGE : {
-        #ifdef DEBUG
-          Serial.println("ERR_HIGH_VOLTAGE detected.");
-        #endif
-        logWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
-        break;
-      }
-      default : {
+  switch( vBucket ) {
+    case ERR_LOW_VOLTAGE : {
+      #ifdef DEBUG
+        Serial.println("ERR_LOW_VOLTAGE detected.");
+      #endif
+      setBucket(lastBucket, false);
+      alarm();
+      break;
+    }
+    case ERR_HIGH_VOLTAGE : {
+      #ifdef DEBUG
+        Serial.println("ERR_HIGH_VOLTAGE detected.");
+      #endif
+      setBucket(lastBucket, false);
+      logWrite (ERR_HIGH_VOLT_PIN, HIGH);      // sensor voltage too high
+      break;
+    }
+    default : {
+      if( vBucket < 0 || vBucket >= numBuckets ) {
         #ifdef DEBUG
           Serial.print("Unknown error detected: "); Serial.println(vBucket);
         #endif
+        break;
       }
+      // normal operation
+      setBucket(lastBucket, false);
+      setBucket(vBucket, true);
+      lastBucket = vBucket;
     }
   }
 }
