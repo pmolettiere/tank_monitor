@@ -155,7 +155,7 @@ void loop() {
   // walk the buckets, set each relay state, and set each LED state. If an error has been returned
   // then all relays and leds will be brought low.
   for(int b=0; b<numBuckets; b++) {
-    bool inBucket = v==vBucket;
+    bool inBucket = b==vBucket;
     // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
     logWrite( relay[b], inBucket ? HIGH : LOW );
     // set each led to HIGH if the color matches the current bucket, otherwise set LOW
