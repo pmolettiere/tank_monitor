@@ -1,6 +1,6 @@
-//#define DEBUG.         // Enables serial debug mussaging
-//#define LOG_WRITE.     // Enables verbose reporting of all digitalWrites
-//#define TEST           // Executes unit test code at the end of setup
+#define DEBUG          // Enables serial debug mussaging
+//#define LOG_WRITE
+#define TEST           // Executes unit test code at the end of setup
 
 // Hardware constants
 // digital pins
@@ -126,7 +126,7 @@ float readAvgVoltage(int numReadings, int delayMs) {
 
 // Debugging method to log all digital writes.
 void logWrite(int pin, int value) {
-  #ifdef DEBUG && LOG_WRITE
+  #ifdef LOG_WRITE && DEBUG 
       Serial.print("digitalWrite( pin " ); Serial.print(pin); Serial.print(", "); Serial.print(value); Serial.println(")");
   #endif
   digitalWrite(pin, value);
@@ -148,7 +148,10 @@ void alarm() {                 // flash red led if volume falls below 7%
 }
 
 void setBucket(int b, bool inBucket) {
-    // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
+  #ifdef DEBUG
+    Serial.print("setBucket() setting bucket "); Serial.print(b); Serial.println(inBucket ? " to true" : " to false");
+  #endif
+  // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
   logWrite( relay[b], inBucket ? HIGH : LOW );
   // set each led to HIGH if the color matches the current bucket, otherwise set LOW
   int currentColor = ledColor[b];
