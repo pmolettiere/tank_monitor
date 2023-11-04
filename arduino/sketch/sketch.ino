@@ -34,12 +34,12 @@ const int numReadings = 10;
 // Number of ms to delay to allow ADC to stabilize before taking each reading.
 const int delayMs = averagePeriodMs / numReadings;     
 // Number of voltage buckets and outputs to track
-const int numBuckets = 10;  
+const int numBuckets = 9;  
 // The voltage limits for each bucket. vLimit[bucketNumber] is the lower limit for each bucket, and 
 // vLimit[bucketNumber+1] is the upper limit for each bucket.
-const float vLimit[numBuckets+1] = { 0.1, 0.5, 1.0, 1.2, 1.75, 2.2, 2.4, 3.4, 4.0, 4.6, 6.0 }; 
+const float vLimit[numBuckets+1] = { 0.1, 0.3, 1.0, 1.75, 2.2, 2.8, 3.5, 4.0, 4.6, 6.0 }; 
 // The led color to be illuminated when the voltage falls within the limits for each bucket.
-const int ledColor[numBuckets] = { rled, yled, yled, gled, gled, gled, gled, gled, gled, gled };
+const int ledColor[numBuckets] = { rled, yled, gled, gled, gled, gled, gled, gled, gled, gled };
 // The pin to be energized when the voltage falls within the limits for each bucket. This pin will
 // energize the appropriate relay to set the desired resistance.
 const int relay[numBuckets] = { D2, D3, D4, D5, D6, D7, D8, D9, D10, D11 };
@@ -199,6 +199,9 @@ void loop() {
         break;
       }
       // normal operation
+        #ifdef DEBUG
+          Serial.print("Switching bucket state from "); Serial.print(lastBucket); Serial.print(" to "); Serial.println(vBucket);
+        #endif
       setBucket(lastBucket, false);
       setBucket(vBucket, true);
       lastBucket = vBucket;
