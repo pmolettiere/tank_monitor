@@ -107,7 +107,7 @@ void loop() {
   // read the tank input
   int reading = analogRead(tank1);
   float voltage = reading * ADC_TO_VOLTAGE_FACTOR;
-  float dpotSetting = DPOT_VOLTS_PER_STEP * voltage;
+  int dpotSetting = round( DPOT_VOLTS_PER_STEP * voltage );
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
