@@ -133,7 +133,7 @@ void setup() {
   pinMode(SCLK, OUTPUT);
   pinMode(tank1, INPUT);
 
-  digitalWrite(CS, HIGH); // select
+  digitalWrite(CS, LOW); // select
   SPI.begin();
 
   #ifdef DEBUG
