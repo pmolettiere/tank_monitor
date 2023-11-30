@@ -52,6 +52,10 @@ byte CMD_WRITE = 0x0;
 byte CMD_INCREMENT = 0x1;
 byte CMD_DECREMENT = 0x2;
 
+// MCP4151 CS constants
+byte CS_SELECTED = LOW;
+byte CS_UNSELECTED = HIGH;
+
 // MCP4151 addresses
 byte ADR_W1 = 0x0;  // wiper 1
 
@@ -112,9 +116,12 @@ void loop() {
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
 
+  digitalWrite(CS, CS_SELECTED); // select
+  SPI.begin();
   SPI.beginTransaction( SPISettings(SPISettings(SPI_BAUD, MSBFIRST, SPI_MODE0)) );
   SPI.transfer16(cmd);
   SPI.endTransaction();
+  digitalWrite(CS, CS_UNSELECTED);
 }
 
 void setup() {
@@ -132,9 +139,6 @@ void setup() {
   pinMode(SDIO, OUTPUT);
   pinMode(SCLK, OUTPUT);
   pinMode(tank1, INPUT);
-
-  digitalWrite(CS, LOW); // select
-  SPI.begin();
 
   #ifdef DEBUG
     Serial.println ("Exiting setup.");
