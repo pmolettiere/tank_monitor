@@ -120,13 +120,19 @@ void loop() {
   int dpotSetting = round( DPOT_VOLTS_PER_STEP * voltage );
   
   #ifdef DEBUG
-    Serial.print("loop(): read voltage "); Serial.print(voltage); Serial.print(" and setting pot to "); Serial.println(dpotSetting);
+    Serial.print("loop(): ");
+    Serial.print("reading: ");
+    Serial.print(reading, HEX);
+    Serial.print(", voltage: ");
+    Serial.print(voltage);
+    Serial.print("dpotSetting: ");
+    Serial.println(dpotSetting);
   #endif
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
   #ifdef DEBUG
-    Serial.print("loop(): constructed cmd "); Serial.println( cmd );
+    Serial.print("loop(): constructed cmd "); Serial.println( cmd, HEX );
   #endif
 
   #ifdef DEBUG
@@ -143,6 +149,7 @@ void loop() {
   #endif
 
   #ifdef DEBUG
+    delay(10000);
     Serial.println ("...Exiting loop.");
   #endif
 }
@@ -168,4 +175,3 @@ void setup() {
   #endif
 
 }
-
