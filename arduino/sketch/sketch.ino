@@ -1,6 +1,6 @@
 #include <SPI.h>
 
-#DEFINE DEBUG
+#define DEBUG
 
 // Hardware constants
 // digital pins
@@ -120,13 +120,13 @@ void loop() {
   int dpotSetting = round( DPOT_VOLTS_PER_STEP * voltage );
   
   #ifdef DEBUG
-    Serial.println ("loop(): read voltage " + voltage " and setting pot to " + dpotSetting );
+    Serial.print("loop(): read voltage "); Serial.print(voltage); Serial.print(" and setting pot to "); Serial.println(dpotSetting);
   #endif
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
   #ifdef DEBUG
-    Serial.println ("loop(): constructed cmd " + cmd );
+    Serial.print("loop(): constructed cmd "); Serial.println( cmd );
   #endif
 
   #ifdef DEBUG
