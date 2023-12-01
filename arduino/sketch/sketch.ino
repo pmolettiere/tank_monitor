@@ -1,5 +1,7 @@
 #include <SPI.h>
 
+#DEFINE DEBUG
+
 // Hardware constants
 // digital pins
 const int D0 = 0;
@@ -108,20 +110,41 @@ int twoByteCommand(byte address, byte command, int data) {
 }
 
 void loop() {
+  #ifdef DEBUG
+    Serial.println ("Entering loop...");
+  #endif
+
   // read the tank input
   int reading = analogRead(tank1);
   float voltage = reading * ADC_TO_VOLTAGE_FACTOR;
   int dpotSetting = round( DPOT_VOLTS_PER_STEP * voltage );
+  
+  #ifdef DEBUG
+    Serial.println ("loop(): read voltage " + voltage " and setting pot to " + dpotSetting );
+  #endif
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
+  #ifdef DEBUG
+    Serial.println ("loop(): constructed cmd " + cmd );
+  #endif
 
+  #ifdef DEBUG
+    Serial.println ("loop(): begin SPI" );
+  #endif
   digitalWrite(CS, CS_SELECTED); // select
   SPI.begin();
   SPI.beginTransaction( SPISettings(SPISettings(SPI_BAUD, MSBFIRST, SPI_MODE0)) );
   SPI.transfer16(cmd);
   SPI.endTransaction();
   digitalWrite(CS, CS_UNSELECTED);
+  #ifdef DEBUG
+    Serial.println ("loop(): end SPI" );
+  #endif
+
+  #ifdef DEBUG
+    Serial.println ("...Exiting loop.");
+  #endif
 }
 
 void setup() {
