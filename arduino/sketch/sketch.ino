@@ -24,8 +24,8 @@ const int SDIO = D11;
 const int SCLK = D13;
 
 // analog pins
-const int tank1 = A0;          // input from tank sensor
-const int unused1 = A1;      
+const int unused = A0;          // input from tank sensor
+const int tank1 = A1;      
 const int unused2 = A2;
 const int unused3 = A3;
 const int unused4 = A4;
@@ -117,23 +117,28 @@ void loop() {
   // read the tank input
   int reading = analogRead(tank1);
   float voltage = reading * ADC_TO_VOLTAGE_FACTOR;
-  int dpotSetting = round( DPOT_VOLTS_PER_STEP * voltage );
+  int dpotSetting = round(DPOT_VOLTS_PER_STEP * voltage);
   
   #ifdef DEBUG
     Serial.print("loop(): ");
     Serial.print("reading: ");
-    Serial.print(reading);
+    Serial.println(reading);
+    Serial.print("ADC_TO_VOLTAGE_FACTOR:  ");
+    Serial.println(ADC_TO_VOLTAGE_FACTOR);
+    Serial.print("DPOT_VOLTS_PER_STEP:  ");
+    Serial.println(DPOT_VOLTS_PER_STEP);
     Serial.print(", voltage: ");
-    Serial.print(voltage);
+    Serial.println(voltage);
     Serial.print("dpotSetting: ");
-    Serial.println(dpotSetting);
+    Serial.println(dpotSetting, DEC);
+    delay(8000);
   #endif
 
-  // // set the digital potentiometer
-  // int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
-  // #ifdef DEBUG
-  //   Serial.print("loop(): constructed cmd "); Serial.println( cmd, HEX );
-  // #endif
+  // set the digital potentiometer
+  int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
+  #ifdef DEBUG
+    Serial.print("loop(): constructed cmd "); Serial.println( cmd, BIN );
+  #endif
 
   // #ifdef DEBUG
   //   Serial.println ("loop(): begin SPI" );
