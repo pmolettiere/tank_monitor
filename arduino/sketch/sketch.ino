@@ -1,7 +1,7 @@
 #include <SPI.h>
 
-#define DEBUG
-#define TEST
+// #define DEBUG
+// #define TEST
 
 // Hardware constants
 // digital pins
@@ -77,17 +77,7 @@ const float DPOT_VOLTS_PER_STEP =  DPOT_STEPS / BOARD_VOLTAGE;
             A A A A  C C D D
 */
 byte oneByteCommand(byte address, byte command, byte data) {
-// shift each field into the right position
-  int shiftedAddress = address << 4;
-  int shiftedCommand = command << 2;
-
-  // mask each field so it can't stomp on the other fields
-  shiftedAddress = shiftedAddress & addressMask8;
-  shiftedCommand = shiftedCommand & commandMask8;
-  int maskedData = data && dataMask8;
-
-  // bitwise OR to get them all into the two byte word
-  return shiftedAddress | shiftedCommand | maskedData;
+  return -1; // needs to be reimplemented along the lines of twoByteCommand.
 }
 
 void debugLog(String name, long value, long masked, long shifted) {
@@ -129,50 +119,44 @@ int twoByteCommand(byte address, byte command, int data) {
 int convertReadingToDPotSetting(int reading) { 
   float voltage = reading * ADC_TO_VOLTAGE_FACTOR;
   int dpotSetting = round(DPOT_VOLTS_PER_STEP * voltage);
-  #ifdef DEBUG
-    Serial.print ("readTank(): reading:"); Serial.print(reading, DEC); Serial.print(", voltage:"); Serial.print(voltage, 2); Serial.print(", dpotSetting:"); Serial.print(dpotSetting, DEC);
-  #endif
+  Serial.print ("readTank(): reading:"); Serial.print(reading, DEC); Serial.print(", voltage:"); Serial.print(voltage, 2); Serial.print(", dpotSetting:"); Serial.print(dpotSetting, DEC);
   return dpotSetting;
 }
 
 void loop() {
-  // #ifdef DEBUG
-  //   Serial.println ("Entering loop...");
-  // #endif
+  #ifdef DEBUG
+    Serial.println ("Entering loop...");
+  #endif
 
   // read the tank input
   int dpotSetting = convertReadingToDPotSetting( analogRead(tank1) );
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
+  Serial.print(", cmd "); Serial.println( cmd, HEX );
+  
   #ifdef DEBUG
-    Serial.print(", cmd "); Serial.println( cmd, HEX );
+    Serial.println ("loop(): begin SPI" );
   #endif
-
-  // #ifdef DEBUG
-  //   Serial.println ("loop(): begin SPI" );
-  // #endif
   digitalWrite(CS, CS_SELECTED); // select
   SPI.begin();
   SPI.beginTransaction( SPISettings(SPISettings(SPI_BAUD, MSBFIRST, SPI_MODE0)) );
   SPI.transfer16(cmd);
   SPI.endTransaction();
   digitalWrite(CS, CS_UNSELECTED);
-  // #ifdef DEBUG
-  //   Serial.println ("loop(): end SPI" );
-  // #endif
+  #ifdef DEBUG
+    Serial.println ("loop(): end SPI" );
+  #endif
 
-  // #ifdef DEBUG
-  //   delay(1000);
-  //   Serial.println ("...Exiting loop.");
-  // #endif
+  #ifdef DEBUG
+    delay(1000);
+    Serial.println ("...Exiting loop.");
+  #endif
 }
 
 void setup() {
-  #if defined DEBUG || defined TEST
-    Serial.begin(9600);           // initialize serial interface
-    Serial.println ("Entering setup. Serial initialized.");
-  #endif
+  Serial.begin(9600);           // initialize serial interface
+  Serial.println ("Entering setup. Serial initialized.");
 
   #ifdef TEST
     Serial.println( "Executing tests...");
@@ -187,9 +171,7 @@ void setup() {
   //pinMode(tank1, INPUT);  // don't need to set pin mode for analog pins
   //analogReference(EXTERNAL);
 
-  #ifdef DEBUG
-    Serial.println ("Exiting setup.");
-  #endif
+  Serial.println ("Exiting setup.");
 }
 
 
