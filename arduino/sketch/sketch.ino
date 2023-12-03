@@ -35,7 +35,7 @@ const int unused5 = A5;        // Red LEDvoid setup() {
 // The Arduino board voltage
 const float BOARD_VOLTAGE = 5.0;  // 5.0 is the voltage for the Arduino UNO.
 // The factor used to convert Arduino analogRead() inputs directly to voltage.
-const float ADC_TO_VOLTAGE_FACTOR = (float)BOARD_VOLTAGE / 1024.0;
+const float ADC_TO_VOLTAGE_FACTOR = BOARD_VOLTAGE / 1024.0;
 
 // eight bit commands
 // A A A A  C C D D 
@@ -67,7 +67,7 @@ const int SPI_BAUD = 10000000;
 
 
 // Digital pot number of steps
-const byte DPOT_STEPS = 256;  // could be 127?
+const int DPOT_STEPS = 256;  // could be 127?
 const float DPOT_VOLTS_PER_STEP =  DPOT_STEPS / BOARD_VOLTAGE;
 
 /*
@@ -116,38 +116,37 @@ int twoByteCommand(byte address, byte command, int data) {
 
   int result = shiftedAddress | shiftedCommand | shiftedData;
   
-  #ifdef DEBUG
-    debugLog("address", address, maskedAddress, shiftedAddress);
-    debugLog("command", command, maskedCommand, shiftedCommand);
-    debugLog("data", data, maskedData, shiftedData);
-    Serial.print(" result: "); Serial.println(result, HEX);
-  #endif
+  // #ifdef DEBUG
+  //   debugLog("address", address, maskedAddress, shiftedAddress);
+  //   debugLog("command", command, maskedCommand, shiftedCommand);
+  //   debugLog("data", data, maskedData, shiftedData);
+  //   Serial.print(" result: "); Serial.println(result, HEX);
+  // #endif
 
   return result;
 }
 
-int readTank(int pin) { 
-  int reading = analogRead(pin);
+int convertReadingToDPotSetting(int reading) { 
   float voltage = reading * ADC_TO_VOLTAGE_FACTOR;
   int dpotSetting = round(DPOT_VOLTS_PER_STEP * voltage);
   #ifdef DEBUG
-    Serial.print ("readTank(): reading:"); Serial.print(reading, DEC); Serial.print(", voltage:"); Serial.print(voltage, 2); Serial.print(", dpotSetting:"); Serial.println(dpotSetting, DEC);
+    Serial.print ("readTank(): reading:"); Serial.print(reading, DEC); Serial.print(", voltage:"); Serial.print(voltage, 2); Serial.print(", dpotSetting:"); Serial.print(dpotSetting, DEC);
   #endif
   return dpotSetting;
 }
 
 void loop() {
-  #ifdef DEBUG
-    Serial.println ("Entering loop...");
-  #endif
+  // #ifdef DEBUG
+  //   Serial.println ("Entering loop...");
+  // #endif
 
   // read the tank input
-  int dpotSetting = readTank(tank1);
+  int dpotSetting = convertReadingToDPotSetting( analogRead(tank1) );
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
   #ifdef DEBUG
-    Serial.print("loop(): constructed cmd "); Serial.println( cmd, BIN );
+    Serial.print(", cmd "); Serial.println( cmd, HEX );
   #endif
 
   // #ifdef DEBUG
@@ -178,6 +177,7 @@ void setup() {
   #ifdef TEST
     Serial.println( "Executing tests...");
     testTwoByteCommand();
+    testConvertReadingToDPotSetting();
   #endif
 
   // initialize pins
@@ -192,6 +192,9 @@ void setup() {
   #endif
 }
 
+
+#ifdef TEST
+
 void testTwoByteCommand() {
   const int numTests = 6;
   // address, command, data, result
@@ -204,6 +207,8 @@ void testTwoByteCommand() {
     {0x8, 0x2, 0x235, 0x8A35}
   };
 
+  Serial.println("testTwoByteCommand():");
+
   for( int t=0; t < numTests; t++) {
     byte address = tests[t][0];
     byte command = tests[t][1];
@@ -211,13 +216,32 @@ void testTwoByteCommand() {
     int correct = tests[t][3];
     int result = twoByteCommand(address, command, data);
     if( result == correct ) {
-      #ifdef DEBUG
         Serial.print("passed "); Serial.println(t, DEC);
-      #endif
     } else {
-      #ifdef DEBUG
         Serial.print("failed "); Serial.println(t, DEC);
-      #endif
     }
   }
 }
+
+void testConvertReadingToDPotSetting() {
+  const int numTests = 32;
+  // address, command, data, result
+  float tests[numTests][2] = {
+    { 0, 0 }, { 32, 8 }, { 64, 16 }, { 96, 24 }, { 128, 32 }, { 160, 40 }, { 192, 48 }, { 224, 56 }, { 256, 64 }, { 288, 72 }, { 320, 80 }, { 352, 88 }, { 384, 96 }, { 416, 104 }, { 448, 112 }, { 480, 120 }, { 512, 128 }, { 544, 136 }, { 576, 144 }, { 608, 152 }, { 640, 160 }, { 672, 168 }, { 704, 176 }, { 736, 184 }, { 768, 192 }, { 800, 200 }, { 832, 208 }, { 864, 216 }, { 896, 224 }, { 928, 232 }, { 960, 240 }, { 992, 248 }
+  };
+
+  Serial.println("testConvertReadingToDPotSetting():");
+
+  for( int t=0; t < numTests; t++) {
+    float read = tests[t][0];
+    int correct = tests[t][1];
+    int result = convertReadingToDPotSetting(read);
+    if( result == correct ) {
+        Serial.print("passed "); Serial.println(t, DEC);
+    } else {
+        Serial.print("failed "); Serial.println(t, DEC);
+    }
+  }
+}
+
+#endif
