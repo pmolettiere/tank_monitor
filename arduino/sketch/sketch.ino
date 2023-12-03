@@ -1,6 +1,7 @@
 #include <SPI.h>
 
 #define DEBUG
+#define TEST
 
 // Hardware constants
 // digital pins
@@ -34,19 +35,19 @@ const int unused5 = A5;        // Red LEDvoid setup() {
 // The Arduino board voltage
 const float BOARD_VOLTAGE = 5.0;  // 5.0 is the voltage for the Arduino UNO.
 // The factor used to convert Arduino analogRead() inputs directly to voltage.
-const float ADC_TO_VOLTAGE_FACTOR = BOARD_VOLTAGE / 1024;
+const float ADC_TO_VOLTAGE_FACTOR = (float)BOARD_VOLTAGE / 1024.0;
 
 // eight bit commands
 // A A A A  C C D D 
-const int addressMask8 = 0xF0;
-const int commandMask8 = 0XC;
-const int dataMask8 = 0x3;
+const int addressMask8 = 0xF;
+const int commandMask8 = 0x3;
+const int dataMask8 =    0x3;
 
 // sixteen bit commands
 // A A A A  C C D D    D D D D  D D D D
-const int addressMask16 = 0xF000;
-const int commandMask16 = 0XC00;
-const int dataMask16 = 0x3FF;
+const long addressMask16 = 0x00F;
+const long commandMask16 = 0x003;
+const long dataMask16 =    0x3FF;
 
 // MCP4151 commands
 const byte CMD_READ = 0x3;
@@ -89,6 +90,14 @@ byte oneByteCommand(byte address, byte command, byte data) {
   return shiftedAddress | shiftedCommand | maskedData;
 }
 
+void debugLog(String name, long value, long masked, long shifted) {
+   #ifdef DEBUG
+    Serial.print("twoByteCommand(): "); Serial.println(name);
+    Serial.print(" value: "); Serial.println(value, HEX); 
+    Serial.print(" maskd: "); Serial.println(masked, HEX);
+    Serial.print(" shift: "); Serial.println(shifted, HEX);
+  #endif 
+}
 /*
   Shifts the bottom four bits of the address, the bottom two 
   bits of the command, and the bottom ten bits of the data into
@@ -96,17 +105,35 @@ byte oneByteCommand(byte address, byte command, byte data) {
             A A A A  C C D D    D D D D  D D D D
 */
 int twoByteCommand(byte address, byte command, int data) {
-  // shift each field into the right position
-  int shiftedAddress = address << 12;
-  int shiftedCommand = command << 10;
 
-  // mask each field so it can't stomp on the other fields
-  shiftedAddress = shiftedAddress & addressMask16;
-  shiftedCommand = shiftedCommand & commandMask16;
-  int maskedData = data && dataMask16;
+  long maskedAddress = address & addressMask16;
+  long maskedCommand = command & commandMask16;
+  long maskedData = data & dataMask16;
 
-  // bitwise OR to get them all into the two byte word
-  return shiftedAddress | shiftedCommand | maskedData;
+  long shiftedAddress = maskedAddress << 12;
+  long shiftedCommand = maskedCommand << 10;
+  long shiftedData = maskedData;
+
+  int result = shiftedAddress | shiftedCommand | shiftedData;
+  
+  #ifdef DEBUG
+    debugLog("address", address, maskedAddress, shiftedAddress);
+    debugLog("command", command, maskedCommand, shiftedCommand);
+    debugLog("data", data, maskedData, shiftedData);
+    Serial.print(" result: "); Serial.println(result, HEX);
+  #endif
+
+  return result;
+}
+
+int readTank(int pin) { 
+  int reading = analogRead(pin);
+  float voltage = reading * ADC_TO_VOLTAGE_FACTOR;
+  int dpotSetting = round(DPOT_VOLTS_PER_STEP * voltage);
+  #ifdef DEBUG
+    Serial.print ("readTank(): reading:"); Serial.print(reading, DEC); Serial.print(", voltage:"); Serial.print(voltage, 2); Serial.print(", dpotSetting:"); Serial.println(dpotSetting, DEC);
+  #endif
+  return dpotSetting;
 }
 
 void loop() {
@@ -115,24 +142,7 @@ void loop() {
   #endif
 
   // read the tank input
-  int reading = analogRead(tank1);
-  float voltage = reading * ADC_TO_VOLTAGE_FACTOR;
-  int dpotSetting = round(DPOT_VOLTS_PER_STEP * voltage);
-  
-  #ifdef DEBUG
-    Serial.print("loop(): ");
-    Serial.print("reading: ");
-    Serial.println(reading);
-    Serial.print("ADC_TO_VOLTAGE_FACTOR:  ");
-    Serial.println(ADC_TO_VOLTAGE_FACTOR);
-    Serial.print("DPOT_VOLTS_PER_STEP:  ");
-    Serial.println(DPOT_VOLTS_PER_STEP);
-    Serial.print(", voltage: ");
-    Serial.println(voltage);
-    Serial.print("dpotSetting: ");
-    Serial.println(dpotSetting, DEC);
-    delay(8000);
-  #endif
+  int dpotSetting = readTank(tank1);
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
@@ -167,6 +177,7 @@ void setup() {
 
   #ifdef TEST
     Serial.println( "Executing tests...");
+    testTwoByteCommand();
   #endif
 
   // initialize pins
@@ -179,5 +190,34 @@ void setup() {
   #ifdef DEBUG
     Serial.println ("Exiting setup.");
   #endif
+}
 
+void testTwoByteCommand() {
+  const int numTests = 6;
+  // address, command, data, result
+  int tests[numTests][4] = {
+    {0, 0, 0, 0},
+    {addressMask16, commandMask16, dataMask16, 0xFFFFFFF},
+    {0x1, 0x1, 0x235, 0x1635},
+    {0x2, 0x2, 0x235, 0x2A35},
+    {0x4, 0x1, 0x235, 0x4635},
+    {0x8, 0x2, 0x235, 0x8A35}
+  };
+
+  for( int t=0; t < numTests; t++) {
+    byte address = tests[t][0];
+    byte command = tests[t][1];
+    int data = tests[t][2];
+    int correct = tests[t][3];
+    int result = twoByteCommand(address, command, data);
+    if( result == correct ) {
+      #ifdef DEBUG
+        Serial.print("passed "); Serial.println(t, DEC);
+      #endif
+    } else {
+      #ifdef DEBUG
+        Serial.print("failed "); Serial.println(t, DEC);
+      #endif
+    }
+  }
 }
