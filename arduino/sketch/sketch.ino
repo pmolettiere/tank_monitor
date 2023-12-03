@@ -152,12 +152,12 @@ void loop() {
   // #ifdef DEBUG
   //   Serial.println ("loop(): begin SPI" );
   // #endif
-  // digitalWrite(CS, CS_SELECTED); // select
-  // SPI.begin();
-  // SPI.beginTransaction( SPISettings(SPISettings(SPI_BAUD, MSBFIRST, SPI_MODE0)) );
-  // SPI.transfer16(cmd);
-  // SPI.endTransaction();
-  // digitalWrite(CS, CS_UNSELECTED);
+  digitalWrite(CS, CS_SELECTED); // select
+  SPI.begin();
+  SPI.beginTransaction( SPISettings(SPISettings(SPI_BAUD, MSBFIRST, SPI_MODE0)) );
+  SPI.transfer16(cmd);
+  SPI.endTransaction();
+  digitalWrite(CS, CS_UNSELECTED);
   // #ifdef DEBUG
   //   Serial.println ("loop(): end SPI" );
   // #endif
