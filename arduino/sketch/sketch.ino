@@ -20,6 +20,10 @@ const int D11 = 11;
 const int D12 = 12;
 const int D13 = 13; 
 
+const int gled = D4;
+const int yled = D2;
+const int rled = D3;
+
 const int CS = D10;
 const int SDIO = D11;
 const int SCLK = D13;
@@ -69,6 +73,11 @@ const int SPI_BAUD = 10000000;
 // Digital pot number of steps
 const int DPOT_STEPS = 256;  // could be 127?
 const float DPOT_VOLTS_PER_STEP =  DPOT_STEPS / BOARD_VOLTAGE;
+
+// LED color levels as dpotSetting values
+const int GREEN = 155;
+const int YELLOW = 104;
+const int FLASH = 53;
 
 /*
   Shifts the bottom four bits of the address, the bottom two 
@@ -123,6 +132,12 @@ int convertReadingToDPotSetting(int reading) {
   return dpotSetting;
 }
 
+void light(int led) {
+  digitalWrite( gled, gled == led ? HIGH : LOW );
+  digitalWrite( yled, yled == led ? HIGH : LOW );
+  digitalWrite( rled, rled == led ? HIGH : LOW );
+}
+
 void loop() {
   #ifdef DEBUG
     Serial.println ("Entering loop...");
@@ -130,6 +145,17 @@ void loop() {
 
   // read the tank input
   int dpotSetting = convertReadingToDPotSetting( analogRead(tank1) );
+
+  if( dpotSetting > GREEN ) {
+    light(gled);
+  } else {
+    if( dpotSetting > YELLOW ) {
+      light(yled);
+    } else {
+      light(rled);
+      // need to implement flash here
+    }
+  }
 
   // set the digital potentiometer
   int cmd = twoByteCommand(ADR_W1, CMD_WRITE, dpotSetting);
@@ -168,6 +194,9 @@ void setup() {
   pinMode(CS, OUTPUT);
   pinMode(SDIO, OUTPUT);
   pinMode(SCLK, OUTPUT);
+  pinMode(gled, OUTPUT);
+  pinMode(yled, OUTPUT);
+  pinMode(rled, OUTPUT);
   //pinMode(tank1, INPUT);  // don't need to set pin mode for analog pins
   //analogReference(EXTERNAL);
 
