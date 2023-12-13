@@ -39,10 +39,10 @@ const int numBuckets = 9;
 // vLimit[bucketNumber+1] is the upper limit for each bucket.
 const float vLimit[numBuckets+1] = { 0.1, 0.3, 1.0, 1.75, 2.2, 2.8, 3.5, 4.0, 4.6, 6.0 }; 
 // The led color to be illuminated when the voltage falls within the limits for each bucket.
-const int ledColor[numBuckets] = { rled, yled, gled, gled, gled, gled, gled, gled, gled, gled };
+const int ledColor[numBuckets] = { rled, yled, gled, gled, gled, gled, gled, gled, gled };
 // The pin to be energized when the voltage falls within the limits for each bucket. This pin will
 // energize the appropriate relay to set the desired resistance.
-const int relay[numBuckets] = { D2, D3, D4, D5, D6, D7, D8, D9, D10, D11 };
+const int relay[numBuckets] = { D2, D3, D4, D5, D6, D7, D8, D9, D10 };
 
 // algorithm variables
 // The last bucket to be set. Allows us to clear the last bucket when the bucket changes, and to only 
