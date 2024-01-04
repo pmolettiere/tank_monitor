@@ -1,6 +1,6 @@
-#define DEBUG            // Enables serial debug mussaging
-#define LOG_WRITE
-//#define TEST           // Executes unit test code at the end of setup
+// #define DEBUG            // Enables serial debug mussaging
+// #define LOG_WRITE
+// #define TEST           // Executes unit test code at the end of setup
 
 // Hardware constants
 // digital pins
@@ -130,6 +130,9 @@ const int green = 2;
 // change led and relay states when the bucket changes.
 int lastBucket[numTanks] = { 0, 0, 0};
 
+// The average readings for each tank per loop pass.
+float avgVoltage[numTanks] = { 0, 0, 0 };
+
 // Error constants
 // Voltage below lower limit.
 const int ERR_LOW_VOLTAGE = -1;
@@ -181,22 +184,24 @@ int getBucketForVoltage(float v, int tank) {
 // intention behind this delay is to allow the ADC to stabilize between readings, and the multiple readings 
 // are averaged to present a more stabilized reading in the face of tank level fluctuations due to motion
 // within the tank.
-float readAvgVoltage(int numReadings, int delayMs, int pin) { 
-  int total = 0;               // Sum of all readings
-  float avgVoltage = 0;        // Averaged value
+void readAvgVoltage(int numReadings, int delayMs) { 
+  int total[numTanks] = {0, 0, 0};                // Sum of all readings 
 
   // totals all ADC outputs in the range of 0-1023
   for (int i = 0; i < numReadings; i++) {
     delay(delayMs);                    // delay before reading the sensor, so all readings have time to settle
-    total += analogRead(pin);    
+    for (int p = 0; p < numTanks; p++ ) {
+      total[p] += analogRead(sensor[p]);    
+    }
   }
   // converts the total of all digital ADC outputs into a total mV value, converting from int to float,
   // and divides by the number of readings to obtain an average mV value.
-  avgVoltage = (total * ADC_TO_VOLTAGE_FACTOR) / numReadings;
-  #ifdef DEBUG
-    Serial.print("readAvgVoltage() returning "); Serial.print(avgVoltage); Serial.print(" for pin "); Serial.println(pin);
-  #endif
-  return avgVoltage;
+  for (int p = 0; p < numTanks; p++ ) {
+    avgVoltage[p] = (total[p] * ADC_TO_VOLTAGE_FACTOR) / numReadings;
+    #ifdef DEBUG
+      Serial.print("readAvgVoltage() returning "); Serial.print(avgVoltage[p]); Serial.print(" for pin "); Serial.println(sensor[p]);
+    #endif
+  }
 }
 
 // Debugging method to log all digital writes.
@@ -243,9 +248,11 @@ void loop() {
     Serial.println ("loop()");
   #endif
 
+  // reads all tank voltages
+  readAvgVoltage(numReadings, delayMs);
+
   for( int tank=0; tank<numTanks; tank++ ) {
-    float v = readAvgVoltage(numReadings, delayMs, sensor[tank]);
-    int vBucket = getBucketForVoltage(v, tank);
+    int vBucket = getBucketForVoltage(avgVoltage[tank], tank);
 
     if( vBucket == lastBucket[tank] ) {
       continue; // do nothing if the bucket hasn't changed.
