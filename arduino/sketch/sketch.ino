@@ -1,6 +1,15 @@
 // #define DEBUG            // Enables serial debug mussaging
 // #define LOG_WRITE
-// #define TEST           // Executes unit test code at the end of setup
+// #define TEST             // Executes unit test code at the end of setup
+
+// The hardware test loop will endlessly cycle from bucket 0 to numBuckets
+// turning on the appropriate LEDs and relays for each bucket. It will do
+// this for all tanks as it steps into each bucket. The loop will pause for 
+// each bucket for HWTEST_DELAY milliseconds before continuing to the next 
+// bucket. When the last bucket is reached, it will continue again with the 
+// first bucket.
+#define HWTEST              // Enables hardware test loop
+#define HWTEST_DELAY 5000   // number of milliseconds to pause for each bucket
 
 // Hardware constants
 // digital pins
@@ -277,7 +286,7 @@ void loop() {
 
 // Setup() initializes all the pins and enables serial i/o for debugging.
 void setup() {
-  #if defined DEBUG || defined TEST
+  #if defined DEBUG || defined TEST || defined HWTEST
     Serial.begin(9600);           // initialize serial interface
     Serial.println ("Entering setup. Serial initialized.");
   #endif
@@ -302,6 +311,11 @@ void setup() {
     // high voltage error pin
     pinMode(ERR_HIGH_VOLT_PIN, OUTPUT);
   }
+  #ifdef HWTEST
+    Serial.println( "Running hardware test loop…");
+    runHWTestLoop();
+  #endif
+
   #ifdef DEBUG
     Serial.println ("Exiting setup.");
   #endif
@@ -332,5 +346,21 @@ void testGetBucketForVoltage() {
     }
   }
   Serial.print( "testGetBucketForVoltage: "); Serial.println(pass ? "PASS" : "FAIL");
+}
+#endif
+
+#ifdef HWTEST
+void runHWTestLoop() {
+  while(true) {
+    for(int b=0; b<numBuckets; b++) {
+      Serial.print( "Switching to bucket " ); Serial.println( b );
+      for(int t=0; t<numTanks; t++) {
+        setBucket(lastBucket[t], false, t);
+        setBucket(b, true, t);
+        lastBucket[t] = b;
+      }
+      delay(HWTEST_DELAY);
+    }
+  }
 }
 #endif
