@@ -72,18 +72,18 @@ const int unused0 = A0;
 const int tank1 = A1;      // input from tank 1 sensor
 const int tank2 = A2;      // input from tank 2 sensor
 const int tank3 = A3;      // input from tank 3 sensor
-const int rled2 = A4;        // Red LED, Tank 2
-const int gled2 = A5;        // Green LED, Tank 2        
-const int yled2 = A6;        // Yellow LED, Tank 2        
+const int rled1 = A4;        // Red LED, Tank 2
+const int gled1 = A5;        // Green LED, Tank 2        
+const int yled1 = A6;        // Yellow LED, Tank 2        
 const int unused7 = A7;        
-const int rled3 = A8;        // Red LED, Tank 3     
-const int gled3 = A9;        // Green LED, Tank 3        
-const int yled3 = A10;        // Yellow LED, Tank 3
-const int switchOut = A11;        
-const int switchIn = A12;        
-const int rled1 = A13;        // Red LED, Tank 1
-const int gled1 = A14;        // Green LED, Tank 1
-const int yled1 = A15;        // Yellow LED, Tank 1
+const int rled2 = A8;        // Red LED, Tank 3     
+const int gled2 = A9;        // Green LED, Tank 3        
+const int yled2 = A10;        // Yellow LED, Tank 3
+const int unused1 = A11;        
+const int pwrled = A12;        
+const int rled3 = A13;        // Red LED, Tank 1
+const int gled3 = A14;        // Green LED, Tank 1
+const int yled3 = A15;        // Yellow LED, Tank 1
 
 // Algorithm constants
 // Total period over which to average the tank level for each update, in milliseconds
@@ -119,9 +119,9 @@ const int bucketColor[numTanks][numBuckets+1] = {
 // The pin to be energized when the voltage falls within the limits for each bucket. This pin will
 // energize the appropriate relay to set the desired resistance.
 const int relay[numTanks][numBuckets+1] = { 
-  { D13, D12, D11, D10,  D9,  D8,  D7,  D6 }, 
-  { D22, D23, D24, D25, D26, D27, D28, D29 }, 
-  { D33, D35, D37, D39, D41, D43, D45, D47 } 
+  { D1,  D2,   D3,  D4,  D5,  D6,  D8,  D9 }, 
+  { D14, D15, D16, D17, D18, D19, D20, D21 }, 
+  { D31, D33, D35, D37, D39, D41, D43, D45 } 
 };
 
 // The alarm LED for each tank
