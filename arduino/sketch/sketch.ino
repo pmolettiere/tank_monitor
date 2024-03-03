@@ -119,7 +119,7 @@ const int bucketColor[numTanks][numBuckets+1] = {
 // The pin to be energized when the voltage falls within the limits for each bucket. This pin will
 // energize the appropriate relay to set the desired resistance.
 const int relay[numTanks][numBuckets+1] = { 
-  { D1,  D2,   D3,  D4,  D5,  D6,  D8,  D9 }, 
+  { D2,  D1,   D3,  D4,  D5,  D6,  D8,  D9 }, 
   { D14, D15, D16, D17, D18, D19, D20, D21 }, 
   { D31, D33, D35, D37, D39, D41, D43, D45 } 
 };
