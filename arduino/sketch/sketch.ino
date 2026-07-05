@@ -1,5 +1,6 @@
-// #define DEBUG            // Enables serial debug mussaging
+// #define DEBUG            // Enables serial debug messaging
 // #define LOG_WRITE
+// #define LOG_READ_VOLTAGE
 // #define TEST             // Executes unit test code at the end of setup
 
 // The hardware test loop will endlessly cycle from bucket 0 to numBuckets
@@ -8,8 +9,11 @@
 // each bucket for HWTEST_DELAY milliseconds before continuing to the next 
 // bucket. When the last bucket is reached, it will continue again with the 
 // first bucket.
-#define HWTEST              // Enables hardware test loop
-#define HWTEST_DELAY 5000   // number of milliseconds to pause for each bucket
+// #define HWTEST              // Enables hardware test loop
+// #define HWTEST_DELAY 500   // number of milliseconds to pause for each bucket
+
+// Enable watermaker autofill
+#define AUTOFILL
 
 // Hardware constants
 // digital pins
@@ -66,6 +70,7 @@ const int D49 = 49;
 const int D50 = 50;
 const int D51 = 51;
 const int D52 = 52;
+const int D53 = 53;
 
 // analog pins
 const int unused0 = A0;
@@ -101,6 +106,27 @@ const int numBuckets = 7;
 // the sensor pin for each tank
 const int sensor[numTanks] = { tank1, tank2, tank3 };
 
+#ifdef AUTOFILL
+// tank index constants
+const int autofillIsDisabled    = -1;
+const int portWaterTank  = 0;
+const int stbWaterTank   = 1; 
+const int wasteTank      = 2;
+
+// the tank selected to monitor for watermaker autofill
+const int autofillTank = portWaterTank;
+
+// when the fillTank level drops to autoFillLowBucket the watermaker is signaled to start
+const int autofillLowBucket = 2; 
+
+// when the fillTank level rises to autoFillHighBucket the watermaker is signaled to stop
+const int autofillHighBucket = 4;
+
+// watermaker signal pins
+const int autofillFloat1Pin = D51;
+const int autofillFloat2Pin  = D53;
+#endif
+
 // The voltage limits for each bucket. vLimit[bucketNumber] is the lower limit for each bucket, and 
 // vLimit[bucketNumber+1] is the upper limit for each bucket.
 const float vLimit[numTanks][numBuckets] = {
@@ -119,7 +145,7 @@ const int bucketColor[numTanks][numBuckets+1] = {
 // The pin to be energized when the voltage falls within the limits for each bucket. This pin will
 // energize the appropriate relay to set the desired resistance.
 const int relay[numTanks][numBuckets+1] = { 
-  { D2,  D1,   D3,  D4,  D5,  D6,  D8,  D9 }, 
+  { D2,  D3,  D4,  D5,  D6,  D7,  D8,  D9 }, 
   { D14, D15, D16, D17, D18, D19, D20, D21 }, 
   { D31, D33, D35, D37, D39, D41, D43, D45 } 
 };
@@ -207,7 +233,7 @@ void readAvgVoltage(int numReadings, int delayMs) {
   // and divides by the number of readings to obtain an average mV value.
   for (int p = 0; p < numTanks; p++ ) {
     avgVoltage[p] = (total[p] * ADC_TO_VOLTAGE_FACTOR) / numReadings;
-    #ifdef DEBUG
+    #ifdef LOG_READ_VOLTAGE
       Serial.print("readAvgVoltage() returning "); Serial.print(avgVoltage[p]); Serial.print(" for pin "); Serial.println(sensor[p]);
     #endif
   }
@@ -238,7 +264,8 @@ void alarm(int tank) {                 // flash red led if volume falls below 7%
 
 void setBucket(int b, bool inBucket, int tank) {
   #ifdef DEBUG
-    Serial.print("setBucket() setting bucket "); Serial.print(b); Serial.print(inBucket ? " to true" : " to false"); Serial.print(" for tank "); Serial.println(tank);
+    Serial.print("setBucket() setting bucket "); Serial.print(b); Serial.print(inBucket ? " to true" : " to false"); Serial.print(" for tank "); Serial.print(tank);
+      Serial.print(" on voltage of "); Serial.println( avgVoltage[tank] );
   #endif
   // set the relay HIGH if we're in the current voltage bucket, otherwise set LOW
   logWrite( relay[tank][b], inBucket ? HIGH : LOW );
@@ -273,6 +300,13 @@ void loop() {
       #endif
       continue;
     }
+    #ifdef AUTOFILL
+      if( tank == autofillTank ) {
+        // Check selected water tank to turn watermaker on or off
+        logWrite(autofillFloat2Pin, vBucket >= autofillLowBucket ? HIGH : LOW );
+        logWrite(autofillFloat1Pin, vBucket >= autofillHighBucket ? HIGH : LOW );
+      }
+    #endif
 
     // normal operation
     #ifdef DEBUG
@@ -282,6 +316,7 @@ void loop() {
     setBucket(vBucket, true, tank);
     lastBucket[tank] = vBucket;
   }
+
 }
 
 // Setup() initializes all the pins and enables serial i/o for debugging.
@@ -307,10 +342,23 @@ void setup() {
     pinMode(ledColor[tank][red], OUTPUT);        
     pinMode(ledColor[tank][yellow], OUTPUT);        
     pinMode(ledColor[tank][green], OUTPUT);
-
-    // high voltage error pin
-    pinMode(ERR_HIGH_VOLT_PIN, OUTPUT);
+    // relay pins
+    for( int r=0; r<=numBuckets; r++ ) {
+      pinMode( relay[tank][r], OUTPUT);
+      #ifdef DEBUG
+      Serial.print("Setting pin "); Serial.print(relay[tank][r]); Serial.println(" to OUTPUT");
+      #endif
+    }
   }
+
+  // high voltage error pin
+  pinMode(ERR_HIGH_VOLT_PIN, OUTPUT);
+
+  #ifdef AUTOFILL
+    pinMode(autofillFloat1Pin, OUTPUT);
+    pinMode(autofillFloat2Pin, OUTPUT);
+  #endif
+
   #ifdef HWTEST
     Serial.println( "Running hardware test loop…");
     runHWTestLoop();
@@ -331,7 +379,7 @@ void testGetBucketForVoltage() {
   #endif
 
  // voltages! { 0.1, 1.0, 1.5, 2.0, 2.5, 3.5, 4.0 },
- // buckets!  {   0    1.   2.   3.   4.   5.   6.   7}
+ // buckets!  {   0,   1,   2,   3,   4,   5,   6,   7}
 
   int testCaseLen = 11; // length of the testCase array
   float testCase[] = {0.0, 0.1, 0.3, 0.5, 0.6, 1.0, 1.1, 1.2, 3.0, 6.0, 7.0 };  // the test inputs
@@ -352,7 +400,7 @@ void testGetBucketForVoltage() {
 #ifdef HWTEST
 void runHWTestLoop() {
   while(true) {
-    for(int b=0; b<numBuckets; b++) {
+    for(int b=0; b<=numBuckets; b++) {
       Serial.print( "Switching to bucket " ); Serial.println( b );
       for(int t=0; t<numTanks; t++) {
         setBucket(lastBucket[t], false, t);
