@@ -9,8 +9,8 @@
 // each bucket for HWTEST_DELAY milliseconds before continuing to the next 
 // bucket. When the last bucket is reached, it will continue again with the 
 // first bucket.
-// #define HWTEST              // Enables hardware test loop
-// #define HWTEST_DELAY 500   // number of milliseconds to pause for each bucket
+#define HWTEST              // Enables hardware test loop
+#define HWTEST_DELAY 500   // number of milliseconds to pause for each bucket
 
 // Enable watermaker autofill
 #define AUTOFILL
@@ -77,18 +77,18 @@ const int unused0 = A0;
 const int tank1 = A1;      // input from tank 1 sensor
 const int tank2 = A2;      // input from tank 2 sensor
 const int tank3 = A3;      // input from tank 3 sensor
-const int rled1 = A4;        // Red LED, Tank 2
-const int gled1 = A5;        // Green LED, Tank 2        
-const int yled1 = A6;        // Yellow LED, Tank 2        
+const int rled1 = A4;      // Red LED, Tank 2
+const int gled1 = A5;      // Green LED, Tank 2        
+const int yled1 = A6;      // Yellow LED, Tank 2        
 const int unused7 = A7;        
-const int rled2 = A8;        // Red LED, Tank 3     
-const int gled2 = A9;        // Green LED, Tank 3        
-const int yled2 = A10;        // Yellow LED, Tank 3
+const int rled2 = A8;      // Red LED, Tank 3     
+const int gled2 = A9;      // Green LED, Tank 3        
+const int yled2 = A10;     // Yellow LED, Tank 3
 const int unused1 = A11;        
-const int pwrled = A12;        
-const int rled3 = A13;        // Red LED, Tank 1
-const int gled3 = A14;        // Green LED, Tank 1
-const int yled3 = A15;        // Yellow LED, Tank 1
+const int pwrled = A12;    // Power LED    
+const int rled3 = A13;     // Red LED, Tank 1
+const int gled3 = A14;     // Green LED, Tank 1
+const int yled3 = A15;     // Yellow LED, Tank 1
 
 // Algorithm constants
 // Total period over which to average the tank level for each update, in milliseconds
