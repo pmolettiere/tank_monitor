@@ -331,6 +331,10 @@ void setup() {
     testGetBucketForVoltage();
   #endif
 
+  // turn on power LED
+  pinMode(pwrled, OUTPUT);
+  logWrite( pwrled, HIGH );
+
   // initialize pins
   // all relay output pins
   for( int tank=0; tank < numTanks; tank++ ) {
@@ -353,6 +357,11 @@ void setup() {
 
   // high voltage error pin
   pinMode(ERR_HIGH_VOLT_PIN, OUTPUT);
+
+  // flash PWR once 
+  logWrite( pwrled, LOW );
+  delay(750);
+  logWrite( pwrled, HIGH );
 
   #ifdef AUTOFILL
     pinMode(autofillFloat1Pin, OUTPUT);
