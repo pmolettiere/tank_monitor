@@ -9,8 +9,8 @@
 // each bucket for HWTEST_DELAY milliseconds before continuing to the next 
 // bucket. When the last bucket is reached, it will continue again with the 
 // first bucket.
-#define HWTEST              // Enables hardware test loop
-#define HWTEST_DELAY 500   // number of milliseconds to pause for each bucket
+// #define HWTEST              // Enables hardware test loop
+// #define HWTEST_DELAY 500   // number of milliseconds to pause for each bucket
 
 // Enable watermaker autofill
 #define AUTOFILL
